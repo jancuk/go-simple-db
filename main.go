@@ -4,7 +4,13 @@ import (
   "github.com/jancuk/simple/models"
   "fmt"
   "net/http"
+  "encoding/json"
 )
+
+type Response struct {
+  Page int                `json:"page"`
+  Data []*models.Person   `json:"data"`
+}
 
 func main()  {
   models.InitDB("postgres://azhar:12345rewq@localhost/contact_person?sslmode=disable")
@@ -14,6 +20,8 @@ func main()  {
 }
 
 func ContactResource(w http.ResponseWriter, r *http.Request) {
+  w.Header().Set("Content-Type", "application/json")
+
   if r.Method != "GET" {
     http.Error(w, http.StatusText(405), 405)
     return
@@ -24,8 +32,9 @@ func ContactResource(w http.ResponseWriter, r *http.Request) {
     return
   }
 
-  for _, person := range contacts {
-    fmt.Fprintf(w, "%s, %s, %s, %s, %s", person.FirstName, person.LastName, person.PhoneNumber, person.Address, person.Email)
-  }
+  GetResponse := &Response{ Page: 1, Data: contacts}
+
+  ResultSerialize, _ := json.Marshal(GetResponse)
+  fmt.Fprintf(w, "%s",string(ResultSerialize))
 
 }
